@@ -15,7 +15,7 @@ exports.login = function (request, response){
 		if (err){
             console.log(err)
 			connection.end()
-			return next(err, null)
+			return response.json({"code" : "01"})
         }
         
         var selectQuery = "SELECT * FROM `user` WHERE facebook_id = ?"
@@ -23,7 +23,7 @@ exports.login = function (request, response){
             if (err){      
                 console.log(err)          
                 connection.end()
-                return next(err, null)
+                return response.json({"code" : "01"})
             }
 
             if (result.length == 0){
@@ -38,7 +38,7 @@ exports.login = function (request, response){
                         console.log(err)
                         console.log(err)
                         connection.end()
-                        return next(err, null)
+                        return response.json({"code" : "01"})
                     }
 
                     return response.json({
