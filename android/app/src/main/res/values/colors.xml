@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#F44242</color>
+    <color name="colorPrimaryDark">#D83434</color>
+    <color name="colorAccent">#f09EFF</color>
+
+    <color name="enter_building_background">#FFFEBBA4</color>
+    <color name="enter_building_text_color">#FF12223F</color>
+</resources>

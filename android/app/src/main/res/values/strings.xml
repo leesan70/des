@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">DES</string>
+
+    <string name="you_are_entering">You are now entering?</string>
+
+    <string name="user_canceled_login">You have canceled login</string>
+
+    <string name="enter">Enter</string>
+
+    <string name="facebook_app_id">1948710982053592</string>
+    <string name="fb_login_protocol_scheme">fb1948710982053592</string>
+</resources>
