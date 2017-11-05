@@ -13,13 +13,15 @@ exports.login = function (request, response){
 	
 	connection.connect(function (err){
 		if (err){
+            console.log(err)
 			connection.end()
 			return next(err, null)
         }
         
         var selectQuery = "SELECT * FROM `user` WHERE facebook_id = ?"
         connection.query(selectQuery, [query.facebook_id], function(err, result){
-            if (err){                
+            if (err){      
+                console.log(err)          
                 connection.end()
                 return next(err, null)
             }
@@ -33,6 +35,7 @@ exports.login = function (request, response){
                 var insertQuery = "INSERT INTO `user` SET ?;"
                 connection.query(insertQuery, data, function(err, result){
                     if (err){
+                        console.log(err)
                         console.log(err)
                         connection.end()
                         return next(err, null)
