@@ -8,8 +8,8 @@ var utils = require("./utils")
  * name
  */
 exports.login = function (request, response){
-    let query = request.body     
-    let connection = utils.getConnection()
+    var query = request.body     
+    var connection = utils.getConnection()
 	
 	connection.connect(function (err){
 		if (err){
@@ -17,7 +17,7 @@ exports.login = function (request, response){
 			return next(err, null)
         }
         
-        let selectQuery = "SELECT * FROM `user` WHERE facebook_id = ?"
+        var selectQuery = "SELECT * FROM `user` WHERE facebook_id = ?"
         connection.query(selectQuery, [query.facebook_id], function(err, result){
             if (err){                
                 connection.end()
@@ -25,12 +25,12 @@ exports.login = function (request, response){
             }
 
             if (result.length == 0){
-                let data = {
+                var data = {
                     'facebook_id' : query.facebook_id,
                     'push_key' : query.push_key,
                     'name' : query.name           
                 }
-                let insertQuery = "INSERT INTO `user` SET ?;"
+                var insertQuery = "INSERT INTO `user` SET ?;"
                 connection.query(insertQuery, data, function(err, result){
                     if (err){
                         console.log(err)
@@ -55,10 +55,11 @@ exports.login = function (request, response){
 
 /**
  * PUT
+ * cuurent_loc
  */
 exports.updateLocation = function(request, response){
-    let query = request.body
-    let connection = utils.getConnection()
+    var query = request.body
+    var connection = utils.getConnection()
 
     conncetion.connect(function(err){
         if (err){
@@ -79,3 +80,4 @@ exports.updateLocation = function(request, response){
         })
     })
 }
+
