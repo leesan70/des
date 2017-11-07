@@ -1,32 +1,35 @@
 package com.sblee.des;
 
 import android.content.Intent;
-import android.location.Address;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 
 import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
+import com.facebook.FacebookSdk;
 import com.facebook.GraphRequest;
 import com.facebook.GraphResponse;
-import com.facebook.internal.Utility;
+import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.JsonHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
+import com.sblee.des.util.UserPref;
 import com.sblee.des.util.Utils;
 
 import org.json.JSONObject;
 
-import butterknife.BindView;
+import java.util.Arrays;
+
+import butterknife.Bind;
 import butterknife.ButterKnife;
 import cz.msebera.android.httpclient.Header;
 
 public class MainActivity extends AppCompatActivity {
 
-    @BindView(R.id.am_facebook_login_button)
+    @Bind(R.id.am_facebook_login_button)
     LoginButton loginButton;
 
     CallbackManager callbackManager;
@@ -34,13 +37,29 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        FacebookSdk.sdkInitialize(this);
         setContentView(R.layout.activity_main);
 
         ButterKnife.bind(this);
 
-        loginButton.setReadPermissions("email", "name");
+        UserPref pref = new UserPref(this);
+        if (pref.isUserLoggedIn()){
+            if (pref.getGender().equals("")){
+                Intent intent = new Intent(MainActivity.this,
+                        GenderUpdatingActivity.class);
+                startActivity(intent);
+            } else {
+                Intent intent = new Intent(MainActivity.this,
+                        BuildingEnteringActivity.class);
+                startActivity(intent);
+            }
+            finish();
+            return;
+        }
+
+        loginButton.setReadPermissions(Arrays.asList("email"));
         callbackManager = CallbackManager.Factory.create();
-        loginButton.registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
+        FacebookCallback<LoginResult> callback = new FacebookCallback<LoginResult>() {
             @Override
             public void onSuccess(final LoginResult loginResult) {
                 // App code
@@ -49,7 +68,7 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onCompleted(JSONObject object, GraphResponse response) {
                         try {
-                            String id = object.getString("id");
+                            final String id = object.getString("id");
                             String name = object.getString("name");
                             AsyncHttpClient client = new AsyncHttpClient();
 
@@ -68,9 +87,32 @@ public class MainActivity extends AppCompatActivity {
 
                                 @Override
                                 public void onSuccess(int statusCode, Header[] headers, JSONObject response){
-                                    Intent intent = new Intent(MainActivity.this, BuildingEnteringActivity.class);
-                                    startActivity(intent);
-                                    finish();
+                                    try {
+                                        String code = response.getString("code");
+                                        if (code.equals("00")) {
+                                            // cache the response
+                                            UserPref pref = new UserPref(MainActivity.this);
+                                            pref.setUserData(id,
+                                                    loginResult.getAccessToken().getToken());
+//                                            Intent intent = new Intent(MainActivity.this,
+//                                                    BuildingEnteringActivity.class);
+//                                            startActivity(intent);
+//                                            finish();
+//                                            if (pref.getGender().equals("")){
+                                                Intent intent = new Intent(MainActivity.this,
+                                                        GenderUpdatingActivity.class);
+                                                startActivity(intent);
+//                                            } else {
+//                                                Intent intent = new Intent(MainActivity.this,
+//                                                        BuildingEnteringActivity.class);
+//                                                startActivity(intent);
+//                                            }
+                                            finish();
+                                        }
+                                    } catch (Exception e){
+                                        e.printStackTrace();
+                                    }
+
                                 }
                             });
                         } catch (Exception e){
@@ -95,6 +137,15 @@ public class MainActivity extends AppCompatActivity {
             public void onError(FacebookException exception) {
                 Utils.createAlert(MainActivity.this, exception.toString());
             }
-        });
+        };
+        loginButton.registerCallback(callbackManager, callback);
+
+        LoginManager.getInstance().registerCallback(callbackManager, callback);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        callbackManager.onActivityResult(requestCode, resultCode, data);
     }
 }
