@@ -1,7 +1,0 @@
-{
-	"host" : "des.cwbamfsx6c64.us-east-2.rds.amazonaws.com",
-    "user" : "des",
-    "password" : "1q2w3e4r",
-    "database" : "des",
-    "port" : 3306
-}
