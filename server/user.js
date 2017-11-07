@@ -179,7 +179,7 @@ exports.getBuildings = function(request, response){
  * gender
  */
 exports.updateGender = function(request, response){
-    var query = request.query
+    var query = request.body
     var connection = utils.getConnection()
 
     connection.connect(function(err){
@@ -211,7 +211,7 @@ exports.updateGender = function(request, response){
  * gender
  */
 exports.updatePreference = function(request, response){
-    var query = request.query
+    var query = request.body
     var connection = utils.getConnection()
 
     connection.connect(function(err){
@@ -244,7 +244,7 @@ exports.updatePreference = function(request, response){
  * preference
  */
 exports.updateGenderPreference = function(request, response){
-    var query = request.query
+    var query = request.body
     var connection = utils.getConnection()
 
     connection.connect(function(err){
