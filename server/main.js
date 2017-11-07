@@ -19,7 +19,6 @@ var multer 		= require("multer")
 
 var path = require("path")
 
-
 function listenPort (port){
 	var server = http.createServer(app).listen(port, function(){
 		console.log("Server is running on port : " + port)	
@@ -42,7 +41,12 @@ function initializeServer(app){
 	var user 		= require("./user")
 
     app.post("/login", user.login)
-    app.put("/updateLocation", user.updateLocation)
+	app.put("/updateLocation", user.updateLocation)
+	app.get("/getUserInBuilding", user.getUserInBuilding)
+	app.get("/getBuildings", user.getBuildings)
+	app.put("/updateGender", user.updateGender)
+	app.put("/updatePreference", user.updatePreference)
+	app.put("/updateGenderPreference", user.updateGenderPreference)	
 }
 
 // Server clustering
