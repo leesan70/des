@@ -144,7 +144,6 @@ exports.getUserInBuilding = function(request, response){
 }
 /**
  * GET
- * facebook_id
  * lat
  * lon
  */
@@ -170,6 +169,70 @@ exports.getBuildings = function(request, response){
             }
 
             return response.json(result)
+        })
+    })
+}
+
+/**
+ * PUT
+ * facebook_id
+ * gender
+ */
+exports.updateGender = function(request, response){
+    var query = request.query
+    var connection = utils.getConnection()
+
+    connection.connect(function(err){
+        if (err){
+            console.log(err)
+            connection.end()
+            return response.json({"code" : "01"})
+        }
+
+        var data = {
+            'gender' : query.gender
+        }
+        var updateQuery = "UPDATE `user` SET ? WHERE facebook_id = ?;"
+        connection.query(updateQuery,[data, query.facebook_id],function(err, result){
+            if (err){
+                console.log(err)
+                connection.end()
+                return response.json({"code" : "01"})
+            }
+
+            return response.json({"code" : "00"})            
+        })
+    })
+}
+
+/**
+ * PUT
+ * facebook_id
+ * gender
+ */
+exports.updatePreference = function(request, response){
+    var query = request.query
+    var connection = utils.getConnection()
+
+    connection.connect(function(err){
+        if (err){
+            console.log(err)
+            connection.end()
+            return response.json({"code" : "01"})
+        }
+
+        var data = {
+            'gender_pref' : query.gender
+        }
+        var updateQuery = "UPDATE `user` SET ? WHERE facebook_id = ?;"
+        connection.query(updateQuery,[data, query.facebook_id],function(err, result){
+            if (err){
+                console.log(err)
+                connection.end()
+                return response.json({"code" : "01"})
+            }
+
+            return response.json({"code" : "00"})            
         })
     })
 }

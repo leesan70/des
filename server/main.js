@@ -44,6 +44,8 @@ function initializeServer(app){
 	app.put("/updateLocation", user.updateLocation)
 	app.get("/getUserInBuilding", user.getUserInBuilding)
 	app.get("/getBuildings", user.getBuildings)
+	app.put("/updateGender", user.updateGender)
+	app.put("/updatePreference", user.updatePreference)
 }
 
 // Server clustering
