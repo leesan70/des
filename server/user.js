@@ -168,7 +168,10 @@ exports.getBuildings = function(request, response){
                 return response.json({"code" : "01"})
             }
 
-            return response.json(result)
+            return response.json({
+                "code" : "00",
+                "data" : result
+            })
         })
     })
 }
