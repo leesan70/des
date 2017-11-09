@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:gravity="center"
-    tools:context="com.sblee.des.MainActivity" >
+    tools:context="com.des.MainActivity" >
 
 
     <com.facebook.login.widget.LoginButton
