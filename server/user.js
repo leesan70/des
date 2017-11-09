@@ -3,7 +3,6 @@ var utils = require("./utils")
 /**
  * POST 
  * facebook_id
- * facebook_token
  * push_key
  * name
  */
