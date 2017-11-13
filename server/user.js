@@ -157,7 +157,7 @@ exports.getBuildings = function(request, response){
             return response.json({"code" : "01"})
         }
 
-        var search_radius = 0.001        
+        var search_radius = 0.01        
         var geoQuery = "SELECT * FROM `buildings` " +
         "WHERE MBRIntersects( ST_BUFFER( POINT( " + query.lon + "," + query.lat + "), " + search_radius +" ), building_polygon );"
         connection.query(geoQuery, function(err, result){
