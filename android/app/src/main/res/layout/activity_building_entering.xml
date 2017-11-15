@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context="com.des.BuildingEnteringActivity">
+    tools:context="com.sblee.des.BuildingEnteringActivity">
 
     <TextView
         android:layout_width="match_parent"
