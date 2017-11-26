@@ -1,11 +1,7 @@
-package com.sblee.des.util;
+package com.des.util;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-
-/**
- * Created by minsoo on 2017. 11. 7..
- */
 
 public class UserPref {
 
@@ -40,4 +36,16 @@ public class UserPref {
         editor.putString("gender", gender);
         editor.apply();
     }
+
+    public void setPushKey(String pushkey) {
+        try {
+            SharedPreferences.Editor editor = pref.edit();
+            editor.putString("push_key", pushkey);
+            editor.apply();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public String getPushKey() { return pref.getString("push_key", ""); }
 }

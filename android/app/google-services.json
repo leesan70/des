@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "77920706227",
+    "firebase_url": "https://dest-c4258.firebaseio.com",
+    "project_id": "dest-c4258",
+    "storage_bucket": "dest-c4258.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:77920706227:android:e8818984f6eed8ea",
+        "android_client_info": {
+          "package_name": "com.des"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "77920706227-fr4d8jmhq1gqp7av85ehnssb3n5t14et.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBCZB6tOkegfgYEhKzaN9cRm0Z2Bansthg"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

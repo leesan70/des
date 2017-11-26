@@ -1,4 +1,4 @@
-package com.sblee.des;
+package com.des;
 
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
@@ -8,8 +8,8 @@ import android.widget.RadioButton;
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.JsonHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
-import com.sblee.des.util.UserPref;
-import com.sblee.des.util.Utils;
+import com.des.util.UserPref;
+import com.des.util.Utils;
 
 import org.json.JSONObject;
 

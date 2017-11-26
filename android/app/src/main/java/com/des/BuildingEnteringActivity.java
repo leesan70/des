@@ -1,7 +1,8 @@
-package com.sblee.des;
+package com.des;
 
 import android.Manifest;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
@@ -10,7 +11,6 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,19 +20,19 @@ import android.widget.TextView;
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.JsonHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
-import com.sblee.des.objects.Building;
-import com.sblee.des.util.UserPref;
-import com.sblee.des.util.Utils;
+import com.des.objects.Building;
+import com.des.util.UserPref;
+import com.des.util.Utils;
 import com.squareup.picasso.Picasso;
+import cz.msebera.android.httpclient.Header;
 
-import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
-import cz.msebera.android.httpclient.Header;
 
 public class BuildingEnteringActivity extends AppCompatActivity {
 
@@ -46,12 +46,15 @@ public class BuildingEnteringActivity extends AppCompatActivity {
     LocationManager locationManager;
     LocationListener locationListener;
 
+    Location lastLocation;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_building_entering);
 
         ButterKnife.bind(this);
+
 
         mAdapter = new BuildingAdapter();
         mainListView.setAdapter(mAdapter);
@@ -62,6 +65,9 @@ public class BuildingEnteringActivity extends AppCompatActivity {
         locationListener = new LocationListener();
         String[] permissions = new String[]{Manifest.permission.ACCESS_FINE_LOCATION};
         if (Utils.isPermissionsGranted(this, permissions)) {
+            //noinspection MissingPermission
+            lastLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+            locationListener.onLocationChanged(lastLocation);
             //noinspection MissingPermission
             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000,
                     30, locationListener);
@@ -76,6 +82,9 @@ public class BuildingEnteringActivity extends AppCompatActivity {
                 requestLocationPermission();
             }
         }
+
+        // Update PushKey
+        updatePushKey();
     }
 
     private void showRequestPermissionRationale(String msg){
@@ -110,6 +119,9 @@ public class BuildingEnteringActivity extends AppCompatActivity {
         if (requestCode == 0){
             if (grantResults.length == 1 && permissions[0].equals(Manifest.permission.ACCESS_FINE_LOCATION)) {
                 //noinspection MissingPermission
+                lastLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+                locationListener.onLocationChanged(lastLocation);
+                //noinspection MissingPermission
                 locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000,
                         30, locationListener);
                 //noinspection MissingPermission
@@ -118,6 +130,7 @@ public class BuildingEnteringActivity extends AppCompatActivity {
             }
         }
     }
+
 
     private void updateLocation(Location location) {
         AsyncHttpClient client = new AsyncHttpClient();
@@ -135,32 +148,12 @@ public class BuildingEnteringActivity extends AppCompatActivity {
     }
 
     private void loadBuildings(Location location){
-        AsyncHttpClient client = new AsyncHttpClient();
-
-        RequestParams params = new RequestParams();
-        params.put("facebook_id", new UserPref(this)
-                .getFacebookId());
-        params.put("lat", String.valueOf(location.getLatitude()));
-        params.put("lon", String.valueOf(location.getLongitude()));
-        params.put("accuracy", String.valueOf(location.getAccuracy()));
-
-        client.get(Utils.ADDRESS + "getBuildings", params, new JsonHttpResponseHandler() {
+        Building.getBuildingsNear(location, this, new Building.OnBuildingLoadedListener() {
             @Override
-            public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
-                try {
-                    String code = response.getString("code");
-                    if (code.equals("00")) {
-                        buildings.clear();
-                        JSONArray data = response.getJSONArray("data");
-                        for (int i = 0; i < data.length(); i++){
-                            JSONObject buildingData = data.getJSONObject(i);
-                            buildings.add(new Building(buildingData));
-                        }
-                        mAdapter.notifyDataSetChanged();
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+            public void onLoaded(List<Building> buildings) {
+                BuildingEnteringActivity.this.buildings.clear();
+                BuildingEnteringActivity.this.buildings.addAll(buildings);
+                mAdapter.notifyDataSetChanged();
             }
         });
     }
@@ -171,6 +164,8 @@ public class BuildingEnteringActivity extends AppCompatActivity {
         public BuildingHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             View itemvView = LayoutInflater.from(BuildingEnteringActivity.this)
                     .inflate(R.layout.container_building, parent, false);
+//            TextView enter = (TextView) itemvView.findViewById(R.id.cb_enter_textview);
+//            enter.
             return new BuildingHolder(itemvView);
         }
 
@@ -209,6 +204,14 @@ public class BuildingEnteringActivity extends AppCompatActivity {
                     .load(building.getProfileImage()).into(profileIv);
             buildingNameTv.setText(building.getName());
             addressTv.setText(building.getAddress());
+            enterTv.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(getApplicationContext(), UsersActivity.class);
+                    intent.putExtra("building", buildingNameTv.getText().toString());
+                    startActivity(intent);
+                }
+            });
         }
     }
 
@@ -216,10 +219,12 @@ public class BuildingEnteringActivity extends AppCompatActivity {
 
         @Override
         public void onLocationChanged(Location location) {
-//            if (location.getAccuracy() < 150){
+            if (location.getAccuracy() <= lastLocation.getAccuracy() || (lastLocation.getTime() -
+                    location.getTime()) > 10 * 60 * 1000){
                 updateLocation(location);
                 loadBuildings(location);
-//            }
+                lastLocation = location;
+            }
         }
 
         @Override
@@ -236,5 +241,18 @@ public class BuildingEnteringActivity extends AppCompatActivity {
         public void onProviderDisabled(String provider) {
 
         }
+    }
+
+    private void updatePushKey() {
+        AsyncHttpClient client = new AsyncHttpClient();
+        final UserPref pref = new UserPref(this);
+        RequestParams params = new RequestParams();
+        System.out.println("facebook_id: " + pref.getFacebookId());
+        params.put("facebook_id", pref.getFacebookId());
+        params.put("push_key", pref.getPushKey());
+        System.out.println("UPDATING PUSH KEY");
+        client.put(Utils.ADDRESS + "sendPushKey", params, new JsonHttpResponseHandler() {
+
+        });
     }
 }

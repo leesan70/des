@@ -9,12 +9,12 @@ var utils = require("./utils")
 exports.login = function (request, response){
     var query = request.body     
     var connection = utils.getConnection()
-	
-	connection.connect(function (err){
-		if (err){
+  
+connection.connect(function (err){
+    if (err){
             console.log(err)
-			connection.end()
-			return response.json({"code" : "01"})
+      connection.end()
+      return response.json({"code" : "01"})
         }
         
         var selectQuery = "SELECT * FROM `user` WHERE facebook_id = ?"
@@ -25,6 +25,7 @@ exports.login = function (request, response){
                 return response.json({"code" : "01"})
             }
 
+            // push_key for push notification using Firebase Cloud Messaging (to be implemented)
             if (result.length == 0){
                 var data = {
                     'facebook_id' : query.facebook_id,
@@ -125,22 +126,28 @@ exports.getUserInBuilding = function(request, response){
             connection.end()
             return response.json({"code" : "01"})
         }
+        var selectQuery = "SELECT * FROM `user` WHERE current_location = ?" +
+                          "AND NOT (facebook_id = ?)" +
+                          "AND gender IN (SELECT gender_pref FROM `user` WHERE facebook_id = ?)";
+        connection.query(selectQuery, [query.building_name, query.facebook_id, query.facebook_id], function(err, result){
+            var selectQuery = "SELECT * FROM `user` WHERE current_location = ?" +
+                              "AND gender IN (SELECT gender_pref FROM `user` WHERE facebook_id = ?)";
+            connection.query(selectQuery, [query.building_name, query.facebook_id], function(err, result){    
+                if (err){
+                    console.log(err)
+                    connection.end()
+                    return response.json({"code" : "01"})
+                }            
 
-        var selectQuery = "SELECT * FROM `user` WHERE current_location = ? AND current_location NOT IN (SELECT current_location FROM `user` WHERE facebook_id = ?);"
-        connection.query(selectQuery, [query.building_name, query.facebook_id], function(err, result){
-            if (err){
-                console.log(err)
-                connection.end()
-                return response.json({"code" : "01"})
-            }            
-
-            return response.json({
-                "code" : "00",
-                "data" : result
-            })
-        })        
+                return response.json({
+                    "code" : "00",
+                    "data" : result
+                })
+            })        
+        })
     })
 }
+
 /**
  * GET
  * lat
@@ -157,7 +164,7 @@ exports.getBuildings = function(request, response){
             return response.json({"code" : "01"})
         }
 
-        var search_radius = 0.01        
+        var search_radius = 0.001        
         var geoQuery = "SELECT * FROM `buildings` " +
         "WHERE MBRIntersects( ST_BUFFER( POINT( " + query.lon + "," + query.lat + "), " + search_radius +" ), building_polygon );"
         connection.query(geoQuery, function(err, result){
@@ -177,12 +184,14 @@ exports.getBuildings = function(request, response){
 
 /**
  * PUT
- * facebook_id
- * gender
+ * source_facebook_id (source user)
+ * dest_facebook_id (destination user)
  */
-exports.updateGender = function(request, response){
+
+exports.sendNotification = function (request, response) {
     var query = request.body
     var connection = utils.getConnection()
+    var FCM = require("fcm-push")
 
     connection.connect(function(err){
         if (err){
@@ -191,84 +200,79 @@ exports.updateGender = function(request, response){
             return response.json({"code" : "01"})
         }
 
-        var data = {
-            'gender' : query.gender
-        }
-        var updateQuery = "UPDATE `user` SET ? WHERE facebook_id = ?;"
-        connection.query(updateQuery,[data, query.facebook_id],function(err, result){
+        var selectQuery = "SELECT push_key from `user` WHERE facebook_id = ?"
+        connection.query(selectQuery, [query.dest_facebook_id], function(err, result) {
             if (err){
                 console.log(err)
                 connection.end()
                 return response.json({"code" : "01"})
             }
-
-            return response.json({"code" : "00"})            
+            var receiverPushKey = result[0].push_key
+            var facebookNameQuery = "SELECT name from `user` WHERE facebook_id = ?"
+            connection.query(facebookNameQuery, [query.source_facebook_id], function (err, result ){
+                var serverKey = require("./config/fcmInfo.json").fcmKey;
+                var fcm = new FCM(serverKey);
+                console.log(result[0].name);
+                var message = {
+                    to : receiverPushKey,
+                    collapse_key: 'your_collapse_key', 
+                    data: {
+                        data_key: '111'                    
+                    },
+                    notification: {
+                        title: 'DES',
+                        body: result[0].name + " just liked you"
+                    }
+                };
+                fcm.send(message, function(err, response){
+                    if (err) {
+                        console.log(err)
+                        console.log("Something has gone wrong!");
+                    } else {
+                        console.log("Successfully sent with response: ", response);
+                    }
+                });
+            })
+            return response.json({"code" : "00"})
         })
     })
 }
 
-/**
- * PUT
- * facebook_id
- * gender
- */
-exports.updatePreference = function(request, response){
-    var query = request.body
-    var connection = utils.getConnection()
 
-    connection.connect(function(err){
+/* PUT
+ * facebook_id
+ * push_key
+ */
+
+exports.sendPushKey = function (request, response) {
+    var query = request.body     
+    var connection = utils.getConnection()
+  
+    connection.connect(function (err) {
         if (err){
             console.log(err)
             connection.end()
             return response.json({"code" : "01"})
-        }
-
-        var data = {
-            'gender_pref' : query.gender
-        }
-        var updateQuery = "UPDATE `user` SET ? WHERE facebook_id = ?;"
-        connection.query(updateQuery,[data, query.facebook_id],function(err, result){
-            if (err){
-                console.log(err)
-                connection.end()
-                return response.json({"code" : "01"})
+        } else {
+            var data = {
+                "push_key" : query.push_key         
             }
+            var updateQuery = "UPDATE `user` SET ? WHERE facebook_id = ?;" 
+            connection.query(updateQuery, [data, query.facebook_id], function(err, result){
+                if (err){
+                    console.log(err)
+                    connection.end()
+                    return response.json({"code" : "01"})
+                }
 
-            return response.json({"code" : "00"})            
-        })
+                connection.end()
+                return response.json({
+                    "code" : "00"
+                })
+            })
+        }
     })
 }
 
-/**
- * PUT
- * facebook_id
- * gender
- * preference
- */
-exports.updateGenderPreference = function(request, response){
-    var query = request.body
-    var connection = utils.getConnection()
 
-    connection.connect(function(err){
-        if (err){
-            console.log(err)
-            connection.end()
-            return response.json({"code" : "01"})
-        }
 
-        var data = {
-            'gender' : query.gender,
-            'gender_pref' : query.preference
-        }
-        var updateQuery = "UPDATE `user` SET ? WHERE facebook_id = ?;"
-        connection.query(updateQuery,[data, query.facebook_id],function(err, result){
-            if (err){
-                console.log(err)
-                connection.end()
-                return response.json({"code" : "01"})
-            }
-
-            return response.json({"code" : "00"})            
-        })
-    })
-}

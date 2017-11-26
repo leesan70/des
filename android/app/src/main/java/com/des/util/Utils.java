@@ -1,4 +1,4 @@
-package com.sblee.des.util;
+package com.des.util;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -8,13 +8,10 @@ import android.content.pm.PackageManager;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 
-/**
- * Created by minsoo on 2017. 11. 5..
- */
-
 public class Utils {
 
     public static final String ADDRESS = "http://ec2-18-221-211-205.us-east-2.compute.amazonaws.com:5000/";
+    //public static final String ADDRESS = "http://100.65.102.242:5000/";
 
     public static void createAlert(Context context, String msg){
         new AlertDialog.Builder(context).setMessage(msg).setPositiveButton("Ok", new DialogInterface.OnClickListener() {

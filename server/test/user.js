@@ -20,6 +20,7 @@ var host = server.endpoint + ":" + server.port
  */
 describe("Facebook Login", function(){
     it("Facebook login with proper data", function(done){
+        this.timeout(10000)
         let path = "/login"
         let data = {
             "facebook_id"   : "some string",
@@ -51,6 +52,7 @@ describe("Facebook Login", function(){
  */
 describe("Update current location on significant change(GPS)", function(){
     it("Update with proper data", function(done){
+        this.timeout(10000)
         let path = "/updateLocation"
         let data = {
             "facebook_id"   : "1234",
@@ -77,9 +79,13 @@ describe("Update current location on significant change(GPS)", function(){
  * HTTP GET
  * @param facebook_id
  * @param building_name
+
+
+
  */
 describe("Send list of users, except the requester with facebook_id, that are in the building with building_name", function(){
     it("Send list with proper data", function(done){
+        this.timeout(10000)
         let facebook_id  = "1111"
         let building_name  = "ba"
 
@@ -216,3 +222,32 @@ describe("Update both user's gender and preference (Male or Female) given facebo
             })
     })
 })
+
+/**
+ * HTTP PUT
+ * @param facebook_id
+ * @param push_key
+ */
+describe("Update user's push_key given facebook_id", function(){
+    it("Update with proper data", function(done){
+        let path = "/sendPushKey"
+        let data = {
+            "facebook_id"   : "1234",
+            "push_key"        : "13579"
+        }
+
+        chai.request(host)
+            .put(path)
+            .set("content-type", "application/x-www-form-urlencoded")
+            .send(data)
+            .end(function(err, res){
+                res.should.have.status(200)
+                res.should.be.json
+                res.body.should.be.a("object")
+                res.body.should.have.property("code")
+                res.body.code.should.equal("00")            
+                done()
+            })
+    })
+})
+

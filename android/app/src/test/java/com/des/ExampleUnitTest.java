@@ -1,4 +1,4 @@
-package com.sblee.des;
+package com.des;
 
 import org.junit.Test;
 
