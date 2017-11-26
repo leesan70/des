@@ -46,9 +46,9 @@ function initializeServer(app){
   app.put("/updateLocation", user.updateLocation)
   app.get("/getUserInBuilding", user.getUserInBuilding)
   app.get("/getBuildings", user.getBuildings)
-  //app.put("/updateGender", user.updateGender)
-  //app.put("/updatePreference", user.updatePreference)
-  //app.put("/updateGenderPreference", user.updateGenderPreference)
+  app.put("/updateGender", user.updateGender)
+  app.put("/updatePreference", user.updatePreference)
+  app.put("/updateGenderPreference", user.updateGenderPreference)
   app.put("/sendNotification", user.sendNotification)
   app.put("/sendPushKey", user.sendPushKey)
 }
